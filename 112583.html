@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>LED透明时钟</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* 清除默认边距和设置 box-sizing */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* 设置页面全屏背景和字体 */
+    html, body {
+      height: 100%;
+      font-family: monospace; /* 使用等宽字体，更像数码风格 */
+      background: url('https://picsum.photos/id/1015/1920/1080?blur=8') no-repeat center center fixed;
+      background-size: cover;
+      transition: background-image 0.5s ease-in-out;
+      color: white;
+    }
+
+    /* 创建一个模糊遮罩容器，并纵向排列元素 */
+    .overlay {
+      height: 100%;
+      width: 100%;
+      backdrop-filter: blur(10px); /* 模糊背景 */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* 顶部时钟区域样式 */
+    .clock-box {
+      width: 100%;
+      text-align: center;
+      padding: 40px 0;
+      margin-top: 20px;
+      background: rgba(0, 0, 0, 0.2); /* 半透明背景 */
+    }
+
+    /* 主时间显示，超大字体、透明色、发光描边模拟LED数码风格 */
+    .time {
+      font-size: 14rem; /* 字体大小翻倍 */
+      font-weight: bold;
+      letter-spacing: 18px; /* 字符间距加大 */
+      color: transparent; /* 设置为透明文字 */
+      -webkit-text-stroke: 2.5px rgba(255, 255, 255, 0.85); /* 白色描边 */
+      text-shadow:
+        0 0 6px rgba(255,255,255,0.4),
+        0 0 12px rgba(255,255,255,0.6),
+        0 0 25px rgba(255,255,255,0.8); /* 发光阴影 */
+    }
+
+    /* 日期和星期的显示样式 */
+    .date {
+      font-size: 1.8rem;
+      margin-top: 14px;
+      color: #eee;
+      text-shadow: 1px 1px 3px black;
+    }
+
+    /* 导航按钮区域样式 */
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: 80px; /* 增加按钮间距 */
+      margin-top: 60px;
+    }
+
+    /* 每个导航按钮的样式 */
+    .nav button {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      font-size: 2rem; /* 按钮字体更大 */
+      padding: 14px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    /* 鼠标悬停时按钮变亮 */
+    .nav button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* 天气信息区域，放置于底部中间 */
+    .weather {
+      position: absolute;
+      bottom: 30px;
+      left: 30px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      text-shadow: 1px 1px 4px black;
+    }
+
+    /* 切换背景按钮放右下角 */
+    .bg-switch {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <!-- 顶部时间展示区域 -->
+    <div class="clock-box">
+      <div class="time" id="clock">--:--:--</div>
+      <div class="date" id="date">--</div>
+    </div>
+
+    <!-- 四个导航按钮，暂时用“南来北往”代替 -->
+    <div class="nav">
+      <button>南</button>
+      <button>来</button>
+      <button>北</button>
+      <button>往</button>
+    </div>
+
+    <!-- 底部左侧天气信息展示 -->
+    <div class="weather" id="weather">加载天气中...</div>
+
+    <!-- 底部右侧切换背景按钮 -->
+    <button class="bg-switch" onclick="switchBg()">切换背景</button>
+  </div>
+
+  <script>
+    // 更新时间并显示
+    function updateTime() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+
+      // 日期 + 星期展示
+      const weekdays = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+      const dateStr = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${weekdays[now.getDay()]}`;
+      document.getElementById('date').textContent = dateStr;
+    }
+
+    // 每秒更新一次时间
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    // 背景图片数组
+    const bgs = [
+      'https://picsum.photos/id/1015/1920/1080?blur=8',
+      'https://picsum.photos/id/1025/1920/1080?blur=8',
+      'https://picsum.photos/id/1003/1920/1080?blur=8',
+      'https://picsum.photos/id/1016/1920/1080?blur=8'
+    ];
+    let currentBg = 0;
+
+    // 切换背景函数
+    function switchBg() {
+      currentBg = (currentBg + 1) % bgs.length;
+      document.body.style.backgroundImage = `url('${bgs[currentBg]}')`;
+    }
+
+    // 获取用户IP所在城市天气信息
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(loc => {
+        const city = loc.city;
+        return fetch(`https://wttr.in/${city}?format=j1`);
+      })
+      .then(res => res.json())
+      .then(data => {
+        const area = data.nearest_area[0].areaName[0].value;
+        const temp = data.current_condition[0].temp_C;
+        const weatherDesc = data.current_condition[0].weatherDesc[0].value;
+        document.getElementById('weather').textContent =
+          `${area}：${temp}°C，${weatherDesc}`;
+      })
+      .catch(() => {
+        document.getElementById('weather').textContent = '天气信息获取失败';
+      });
+  </script>
+</body>
+</html>
